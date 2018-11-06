@@ -8,8 +8,13 @@ import matplotlib.pyplot as plt
 def def_lambda_ef ():
     
     class Interval_izol(object):
-        def __init__(self,a_vnytr,a_vneshn, lambda_ef):
-                        
+        def __init__(self,a_vnytr,a_vneshn, lambda_int):
+            self.a_vnytr = a_vnytr
+            self.a_vneshn = a_vneshn
+            self.lambda_int = lambda_int
+
+        def slog(self):
+            return 1 / (1/self.lambda_int)*math.log((self.a_vnytr/self.a_vneshn),math.e)
 
 
 a0 = 0.057 # Внутренний радиус НКТ, м
