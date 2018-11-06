@@ -1,8 +1,15 @@
 from matplotlib import mlab
 from terminaltables import AsciiTable
+import xlrd
 import math, random, numpy
 import matplotlib.pyplot as plt
 
+
+def def_lambda_ef ():
+    
+    class Interval_izol(object):
+        def __init__(self,a_vnytr,a_vneshn, lambda_ef):
+                        
 
 
 a0 = 0.057 # Внутренний радиус НКТ, м
