@@ -6,16 +6,25 @@ import matplotlib.pyplot as plt
 
 
 def def_lambda_ef ():
-    
-    class Interval_izol(object):
-        def __init__(self,a_vnytr,a_vneshn, lambda_int):
-            self.a_vnytr = a_vnytr
-            self.a_vneshn = a_vneshn
-            self.lambda_int = lambda_int
+    book = xlrd.open_workbook('data_book.xlsx')
+    sheet = book.sheet_by_index(0)
+    a0 = sheet.cell(5,0).value
+    a1 = sheet.cell(5,1).value
+    l1 = sheet.cell(5,2).value
+    l2 = sheet.cell(5,4).value
+    a2 = sheet.cell(5,5).value
+    l3 = sheet.cell(5,6).value
+    a3 = sheet.cell(5,7).value
+    l4 = sheet.cell(5,8).value
+    a4 = sheet.cell(5,9).value
+    l5 = sheet.cell(5,10).value
+    a5 = sheet.cell(5,11).value
+    l6 = sheet.cell(5,12).value
+    a_cem = sheet.cell(5,13).value
+    lamb_ef = (1 / ( (1/l1)*math.log((a1/a0),math.e) + (1/l2)*math.log((a2/a1),math.e) + (1/l3)*math.log((a3/a2),math.e) + (1/l4)*math.log((a4/a3),math.e) + (1/l5)*math.log((a5/a4),math.e) + (1/l6)*math.log((a_cem/a5),math.e) )) * math.log((a_cem/a0),math.e)
+    return lamb_ef
 
-        def slog(self):
-            return 1 / (1/self.lambda_int)*math.log((self.a_vnytr/self.a_vneshn),math.e)
-
+#print (def_lambda_ef())
 
 a0 = 0.057 # Внутренний радиус НКТ, м
 a1 = 0.1095 # Наружный радиус НКТ с учетом теплоизоляции, м
