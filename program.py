@@ -25,6 +25,7 @@ def def_lambda_ef ():
     return lamb_ef
 
 #print (def_lambda_ef())
+lambda_ef = def_lambda_ef()
 
 a0 = 0.057 # Внутренний радиус НКТ, м
 a1 = 0.1095 # Наружный радиус НКТ с учетом теплоизоляции, м
@@ -34,8 +35,8 @@ a = 0.2 # Наружный радиус цементного кольца за �
 #### lambda_izol = # Коэффициент теплопроводности слоя теплоизоляции НКТ, Вт/(м*град)
 lambda_gp = 0.52 # Коэффициент теплопроводности газовой прослойкимежду НКТ и экспл. колонной, Вт/(м*град)
 lambda_cem = 0.6 # Коэффициент теплопроводности цементного камня, Вт/(м*град)
-t0 = -4 # Среднегодовая температура поверхности массива мерзлых пород, град. цельсия
-tf = 30 # Температура добываемого флюида, град. цкльсия
+t0 = -5 # Среднегодовая температура поверхности массива мерзлых пород, град. цельсия
+tf = 20 # Температура добываемого флюида, град. цкльсия
 C = 0.5772
 
 h = 50 #Мощность расчитываемого интервала, м
@@ -55,7 +56,7 @@ tau = 30 # Время эксплуатации, годы
 speed = 0.001 #Точность вычисления / скорость
 
 class Layer(object):
-    def __init__(self, z, plotn_sk, w_tot, w_w, lambda_t, lambda_m, tfi):
+    def __init__(self, z, plotn_sk, w_tot, w_w, lambda_t, lambda_m, tfi, lambda_ef):
         self.z = z
         self.plotn_sk = plotn_sk
         self.w_tot = w_tot
@@ -63,7 +64,7 @@ class Layer(object):
         self.lambda_t = lambda_t
         self.lambda_m = lambda_m
         self.tfi = tfi
-        self.lambda_ef = ((1 / (((1/lambda_gp)*math.log((a1/a0),math.e)+((1/lambda_cem)*math.log((a/a1),math.e)))))*math.log((a/a0),math.e))
+        self.lambda_ef = lambda_ef #((1 / (((1/lambda_gp)*math.log((a1/a0),math.e)+((1/lambda_cem)*math.log((a/a1),math.e)))))*math.log((a/a0),math.e))
         self.ps_i = (math.log((a/a0),math.e))/(math.log((2*h/a),math.e))
         self.tc = tf*((1+(lambda_m*t0*self.ps_i/self.lambda_ef/tf))/(1+(self.lambda_t*self.ps_i/self.lambda_ef)))
         self.beta = -1*(self.lambda_m*(t0-self.tfi))/(self.lambda_t*(self.tc-self.tfi))
@@ -109,7 +110,7 @@ class Layer(object):
             i = i+1
         return mas_rad
 
-Layer1 = Layer(z,plotn_sk,w_tot,w_w,lambda_t,lambda_m,tfi)
+Layer1 = Layer(z,plotn_sk,w_tot,w_w,lambda_t,lambda_m,tfi,lambda_ef)
 
 mas_plot_rr = Layer1.mas_rr()
 
