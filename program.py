@@ -4,10 +4,18 @@ import xlrd
 import math, random, numpy
 import matplotlib.pyplot as plt
 
+book = xlrd.open_workbook('data_book.xlsx')
+sheet = book.sheet_by_index(0)
+
+a0 = sheet.cell(5,0).value # Внутренний радиус НКТ, м
+a = sheet.cell(5,13).value # Наружный радиус цементного кольца за внешней колонной скважины, м
+l_izol = sheet.cell(8,4).value # Протяженность теплоизолированного участка, м
+t0 = sheet.cell(10,7).value # Среднегодовая температура поверхности массива мерзлых пород, град. цельсия
+tf = sheet.cell(12,4).value # Температура добываемого флюида, град. цельсия
+C = 0.5772
+h = sheet.cell(16,4).value #Мощность расчитываемого интервала, м
 
 def def_lambda_ef ():
-    book = xlrd.open_workbook('data_book.xlsx')
-    sheet = book.sheet_by_index(0)
     a0 = sheet.cell(5,0).value
     a1 = sheet.cell(5,1).value
     l1 = sheet.cell(5,2).value
@@ -21,12 +29,14 @@ def def_lambda_ef ():
     a5 = sheet.cell(5,11).value
     l6 = sheet.cell(5,12).value
     a_cem = sheet.cell(5,13).value
+    
     lamb_ef = (1 / ( (1/l1)*math.log((a1/a0),math.e) + (1/l2)*math.log((a2/a1),math.e) + (1/l3)*math.log((a3/a2),math.e) + (1/l4)*math.log((a4/a3),math.e) + (1/l5)*math.log((a5/a4),math.e) + (1/l6)*math.log((a_cem/a5),math.e) )) * math.log((a_cem/a0),math.e)
     return lamb_ef
 
 #print (def_lambda_ef())
 lambda_ef = def_lambda_ef()
 
+"""
 a0 = 0.057 # Внутренний радиус НКТ, м
 a1 = 0.1095 # Наружный радиус НКТ с учетом теплоизоляции, м
 ### a2 = # 
@@ -40,7 +50,7 @@ tf = 30 # Температура добываемого флюида, град. 
 C = 0.5772
 
 h = 50 #Мощность расчитываемого интервала, м
-
+"""
 #### Задается для каждого расчетного интервала:
 
 z = 50 # Мощность слоя
@@ -52,11 +62,13 @@ lambda_t = 1.4 # Коэффициент теплопроводности пор�
 lambda_m = 1.8 # Коэффициент теплопроводности пород в мерзлом состоянии, Вт/(м*град)
 tfi = 0 # Температура начала оттаивания мерзлых пород, град. цкльсия / Температура начала фазовых переходов
 
+
 tau = 30 # Время эксплуатации, годы
 speed = 0.001 #Точность вычисления / скорость
 
 class Layer(object):
-    def __init__(self, z, plotn_sk, w_tot, w_w, lambda_t, lambda_m, tfi, lambda_ef):
+    def __init__(self, z, plotn_sk, w_tot, w_w, lambda_t, lambda_m, tfi, lambda_ef, number):
+        self.number = number
         self.z = z
         self.plotn_sk = plotn_sk
         self.w_tot = w_tot
@@ -76,7 +88,7 @@ class Layer(object):
         [str(self.z), str(self.plotn_sk), str(self.w_tot), str(self.w_w), str(self.lambda_t), str(self.lambda_m), str(self.tfi)],    
         ]
         table = AsciiTable(table_data)
-        table.title = 'Layer 1'
+        table.title = 'Интервал '+str(self.number)
         print (table.table)
     
     def r_r(self,z):
@@ -110,7 +122,7 @@ class Layer(object):
             i = i+1
         return mas_rad
 
-Layer1 = Layer(z,plotn_sk,w_tot,w_w,lambda_t,lambda_m,tfi,lambda_ef)
+Layer1 = Layer(z,plotn_sk,w_tot,w_w,lambda_t,lambda_m,tfi,lambda_ef, 1)
 
 mas_plot_rr = Layer1.mas_rr()
 
