@@ -12,10 +12,11 @@ a = sheet.cell(5,13).value # Наружный радиус цементного 
 l_izol = sheet.cell(8,4).value # Протяженность теплоизолированного участка, м
 t0 = sheet.cell(10,7).value # Среднегодовая температура поверхности массива мерзлых пород, град. цельсия
 tf = sheet.cell(12,4).value # Температура добываемого флюида, град. цельсия
+n_sloy = int(sheet.cell(14,3).value) # Количество слоев, шт
+h = int(sheet.cell(16,4).value) #Мощность расчитываемого интервала, м
 C = 0.5772
-h = sheet.cell(16,4).value #Мощность расчитываемого интервала, м
 
-def def_lambda_ef ():
+def def_lambda_ef (l_izol, h):
     a0 = sheet.cell(5,0).value
     a1 = sheet.cell(5,1).value
     l1 = sheet.cell(5,2).value
@@ -29,12 +30,23 @@ def def_lambda_ef ():
     a5 = sheet.cell(5,11).value
     l6 = sheet.cell(5,12).value
     a_cem = sheet.cell(5,13).value
+    lamb_ef = []
+    l_izol = l_izol
+    h = h
+       
+    if l_izol == 0:
+        for i in range(h):
+            lamb_ef.append((1 / ( (1/l1)*math.log((a1/a1),math.e) + (1/l2)*math.log((a2/a1),math.e) + (1/l3)*math.log((a3/a2),math.e) + (1/l4)*math.log((a4/a3),math.e) + (1/l5)*math.log((a5/a4),math.e) + (1/l6)*math.log((a_cem/a5),math.e) )) * math.log((a_cem/a0),math.e))
     
-    lamb_ef = (1 / ( (1/l1)*math.log((a1/a0),math.e) + (1/l2)*math.log((a2/a1),math.e) + (1/l3)*math.log((a3/a2),math.e) + (1/l4)*math.log((a4/a3),math.e) + (1/l5)*math.log((a5/a4),math.e) + (1/l6)*math.log((a_cem/a5),math.e) )) * math.log((a_cem/a0),math.e)
+    else:
+        for i in range(l_izol):
+            lamb_ef.append((1 / ( (1/l1)*math.log((a1/a0),math.e) + (1/l2)*math.log((a2/a1),math.e) + (1/l3)*math.log((a3/a2),math.e) + (1/l4)*math.log((a4/a3),math.e) + (1/l5)*math.log((a5/a4),math.e) + (1/l6)*math.log((a_cem/a5),math.e) )) * math.log((a_cem/a0),math.e))
+        for i in range(h-l_izol):
+            lamb_ef.append((1 / ( (1/l1)*math.log((a1/a1),math.e) + (1/l2)*math.log((a2/a1),math.e) + (1/l3)*math.log((a3/a2),math.e) + (1/l4)*math.log((a4/a3),math.e) + (1/l5)*math.log((a5/a4),math.e) + (1/l6)*math.log((a_cem/a5),math.e) )) * math.log((a_cem/a0),math.e))
     return lamb_ef
 
 #print (def_lambda_ef())
-lambda_ef = def_lambda_ef()
+lambda_ef = def_lambda_ef(l_izol, h)
 
 """
 a0 = 0.057 # Внутренний радиус НКТ, м
@@ -67,7 +79,7 @@ tau = 30 # Время эксплуатации, годы
 speed = 0.001 #Точность вычисления / скорость
 
 class Layer(object):
-    def __init__(self, z, plotn_sk, w_tot, w_w, lambda_t, lambda_m, tfi, lambda_ef, number):
+    def __init__(self, z, plotn_sk, w_tot, w_w, lambda_t, lambda_m, tfi, number):
         self.number = number
         self.z = z
         self.plotn_sk = plotn_sk
@@ -76,16 +88,14 @@ class Layer(object):
         self.lambda_t = lambda_t
         self.lambda_m = lambda_m
         self.tfi = tfi
-        self.lambda_ef = lambda_ef #((1 / (((1/lambda_gp)*math.log((a1/a0),math.e)+((1/lambda_cem)*math.log((a/a1),math.e)))))*math.log((a/a0),math.e))
-        self.ps_i = (math.log((a/a0),math.e))/(math.log((2*h/a),math.e))
-        self.tc = tf*((1+(lambda_m*t0*self.ps_i/self.lambda_ef/tf))/(1+(self.lambda_t*self.ps_i/self.lambda_ef)))
-        self.beta = -1*(self.lambda_m*(t0-self.tfi))/(self.lambda_t*(self.tc-self.tfi))
-        self.alfa = (335000 * self.plotn_sk * (self.w_tot-self.w_w)) / (31100000 * self.lambda_t * (self.tc - self.tfi))
-
+        #self.lambda_ef = lambda_ef #((1 / (((1/lambda_gp)*math.log((a1/a0),math.e)+((1/lambda_cem)*math.log((a/a1),math.e)))))*math.log((a/a0),math.e))
+        
     def info(self):
         table_data = [
         ['H слоя, м', 'plotn_sk', 'w_tot', 'w_w', 'lambda_t', 'lanbda_m','tfi'],
-        [str(self.z), str(self.plotn_sk), str(self.w_tot), str(self.w_w), str(self.lambda_t), str(self.lambda_m), str(self.tfi)],    
+        [str(self.z), str(self.plotn_sk), str(self.w_tot), str(self.w_w), str(self.lambda_t), str(self.lambda_m), str(self.tfi)],
+        ['lambda_ef', 'ps_i', 'tc', 'beta', 'alfa', '-|-','-|-'],
+        ['lambda_ef', 'ps_i', 'tc', 'beta', 'alfa', '-|-','-|-']   #Значения
         ]
         table = AsciiTable(table_data)
         table.title = 'Интервал '+str(self.number)
@@ -93,40 +103,47 @@ class Layer(object):
     
     def r_r(self,z):
         z = z
-        rl=a*(math.pow((2*z/a),(1/(1+self.beta))))
+        ps_i = (math.log((a/a0),math.e))/(math.log((2*h/a),math.e))
+        tc = tf*((1+(lambda_m*t0*ps_i/lambda_ef[z]/tf))/(1+(self.lambda_t*ps_i/lambda_ef[z])))
+        beta = -1*(self.lambda_m*(t0-self.tfi))/(self.lambda_t*(tc-self.tfi))
+        alfa = (335000 * self.plotn_sk * (self.w_tot-self.w_w)) / (31100000 * self.lambda_t * (tc - self.tfi))
+        rl=a*(math.pow((2*z/a),(1/(1+beta))))
         print('rl:',z,rl)
         r = a + 0.01
         tau0 = 0
         d_frz_0 = -1 * (1-(C/math.log((2*z/a),math.e)))/(r*math.log((2*z/a),math.e))
         frz_0 = 1 - ((math.log((r/a),math.e) / (math.log((2*z/a),math.e))) * (1 - (C / (math.log((2*z/a),math.e)))))
-        int_0 = self.alfa * (1 / (d_frz_0 * (1/(frz_0-1)+self.beta/frz_0)))
+        int_0 = alfa * (1 / (d_frz_0 * (1/(frz_0-1)+beta/frz_0)))
         while tau >= tau0:
             d_frz = -1 * (1-(C/math.log((2*z/a),math.e)))/(r*math.log((2*z/a),math.e))
             frz = 1 - ((math.log((r/a),math.e) / (math.log((2*z/a),math.e))) * (1 - (C / (math.log((2*z/a),math.e)))))
-            int_1 = self.alfa *  (1 / (d_frz * (1/(frz-1)+self.beta/frz)))
+            int_1 = alfa *  (1 / (d_frz * (1/(frz-1)+beta/frz)))
             tau_d = ((int_0+int_1)/2) * speed #Точность вычисления / скорость
             int_0 = int_1
             r = r + speed #Точность вычисления / скорость
             tau0 = tau0 + tau_d
-            if r >= rl:
+            if r >= rl: # Сравнение с предельным радиусом / максимальным
                 r = rl
+                break
+            if r <= a: # Сравнение с минимальным радиусом
+                r = a
                 break
         return r
    
     def mas_rr(self):
         i = 1
         mas_rad = []
-        while i <= self.z:
+        while i < self.z:
             mas_rad.append(self.r_r(i))
             print(mas_rad[i-1]) 
             i = i+1
         return mas_rad
 
-Layer1 = Layer(z,plotn_sk,w_tot,w_w,lambda_t,lambda_m,tfi,lambda_ef, 1)
+Layer1 = Layer(z,plotn_sk,w_tot,w_w,lambda_t,lambda_m,tfi, 1)
 
 mas_plot_rr = Layer1.mas_rr()
 
-plot_z = numpy.arange(1,z+1)
+plot_z = numpy.arange(1,h)
 
 plt.grid(True)
 plt.gca().invert_yaxis()
