@@ -64,7 +64,7 @@ C = 0.5772
 h = 50 #Мощность расчитываемого интервала, м
 """
 #### Задается для каждого расчетного интервала:
-
+'''
 z = 50 # Мощность слоя
 
 plotn_sk = 1800 # плотность скелета мерзлой породы, кг/м3
@@ -73,7 +73,7 @@ w_w = 0 # Весовая влажность мерзлой породы за с�
 lambda_t = 1.4 # Коэффициент теплопроводности пород в талом состоянии, Вт/(м*град)
 lambda_m = 1.8 # Коэффициент теплопроводности пород в мерзлом состоянии, Вт/(м*град)
 tfi = 0 # Температура начала оттаивания мерзлых пород, град. цкльсия / Температура начала фазовых переходов
-
+'''
 
 tau = 30 # Время эксплуатации, годы
 speed = 0.001 #Точность вычисления / скорость
@@ -104,7 +104,7 @@ class Layer(object):
     def r_r(self,z):
         z = z
         ps_i = (math.log((a/a0),math.e))/(math.log((2*h/a),math.e))
-        tc = tf*((1+(lambda_m*t0*ps_i/lambda_ef[z]/tf))/(1+(self.lambda_t*ps_i/lambda_ef[z])))
+        tc = tf*((1+(self.lambda_m*t0*ps_i/lambda_ef[z]/tf))/(1+(self.lambda_t*ps_i/lambda_ef[z])))
         beta = -1*(self.lambda_m*(t0-self.tfi))/(self.lambda_t*(tc-self.tfi))
         alfa = (335000 * self.plotn_sk * (self.w_tot-self.w_w)) / (31100000 * self.lambda_t * (tc - self.tfi))
         rl=a*(math.pow((2*z/a),(1/(1+beta))))
@@ -139,14 +139,33 @@ class Layer(object):
             i = i+1
         return mas_rad
 
-Layer1 = Layer(z,plotn_sk,w_tot,w_w,lambda_t,lambda_m,tfi, 1)
+#Layer1 = Layer(z,plotn_sk,w_tot,w_w,lambda_t,lambda_m,tfi, 1)
+
+def MAS_sloy_def ():
+    ns = 21
+    MAS_sloy_arr = []
+    for i in range(n_sloy):
+      z = sheet.cell(ns,1).value - sheet.cell(ns,0).value
+      plotn_sk = sheet.cell(ns,2).value
+      w_tot = sheet.cell(ns,3).value
+      w_w = sheet.cell(ns,4).value
+      lambda_t = sheet.cell(ns,5).value
+      lambda_m = sheet.cell(ns,6).value
+      tfi = sheet.cell(ns,7).value
+      ns = ns+1
+      MAS_sloy_arr.append (Layer(z,plotn_sk,w_tot,w_w,lambda_t,lambda_m,tfi,i+1))
+    return MAS_sloy_arr
+
+MAS_sloy = MAS_sloy_def()
+MAS_sloy[0].mas_rr()
+MAS_sloy[0].info()
 
 mas_plot_rr = Layer1.mas_rr()
-
+#Layer1.info()
 plot_z = numpy.arange(1,h)
 
 plt.grid(True)
 plt.gca().invert_yaxis()
 plt.plot(mas_plot_rr,plot_z)
-Layer1.info()
+
 plt.show()
